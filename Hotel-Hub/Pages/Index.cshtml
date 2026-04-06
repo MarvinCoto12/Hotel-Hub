@@ -1,10 +1,43 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center py-5 shadow-sm rounded bg-light border">
+    <h1 class="display-4 fw-bold text-primary">Bienvenido a Hotel Hub</h1>
+    <p class="lead">Sistema de Gestión de Reservaciones e Inventario</p>
+    <hr class="my-4" style="width: 20%; margin: auto;">
+    <div class="mt-4">
+        <a asp-page="/Reservaciones/Index" class="btn btn-primary btn-lg px-5 shadow">
+            Ver Reservaciones
+        </a>
+        <a asp-page="/Reservaciones/Create" class="btn btn-outline-dark btn-lg px-5 shadow-sm">
+            Nueva Entrada
+        </a>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <h3>🛏️</h3>
+            <h5>Habitaciones</h5>
+            <p class="text-muted">Gestione la disponibilidad de sus cuartos en tiempo real.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <h3>👤</h3>
+            <h5>Huéspedes</h5>
+            <p class="text-muted">Registro detallado de clientes y sus estancias.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-3">
+            <h3>📊</h3>
+            <h5>Reportes</h5>
+            <p class="text-muted">Visualice la ocupación mensual de su hotel.</p>
+        </div>
+    </div>
 </div>
