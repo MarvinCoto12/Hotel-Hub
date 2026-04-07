@@ -1,31 +1,51 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+/* --- Estilos Base --- */
+html, body {
+    height: 100%;
+    margin: 0;
 }
 
 body {
-  margin-bottom: 60px;
+    font-family: 'Poppins', sans-serif; 
+    display: flex;
+    flex-direction: column;
+    background-color: #f4f7f9; 
+    color: #2d3436;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+main {
+    flex: 1; 
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+
+h1, h2, .navbar-brand {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.text-primary {
+    color: #0d6efd !important;
+    /* Un pequeño degradado opcional para el título principal */
+    background: linear-gradient(45deg, #0d6efd, #00b4db);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+
+.card {
+    border-radius: 15px; /* Esquinas redonditas */
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Sombra suave */
+    transition: transform 0.3s ease;
+}
+
+    .card:hover {
+        transform: translateY(-5px); /* Efecto de flotar al pasar el mouse */
+    }
+
+
+footer {
+    background-color: white;
+    padding: 1.5rem 0;
+    border-top: 1px solid #eee;
+    font-size: 0.9rem;
 }
