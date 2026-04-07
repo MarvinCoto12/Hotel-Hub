@@ -1,26 +1,40 @@
 ﻿@page
 @model Hotel_Hub.Pages.Reservaciones.IndexModel
 @{
-    ViewData["Title"] = "Listado de Reservaciones";
+    ViewData["Title"] = "Gestión de Reservaciones";
 }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary fw-bold">Gestión de Reservaciones</h2>
-        <a asp-page="Create" class="btn btn-primary shadow-sm">
-            + Nueva Reservación
-        </a>
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2 class="text-primary fw-bold border-bottom pb-2">Gestión de Reservaciones</h2>
+        </div>
+    </div>
+
+    <div class="row g-3 align-items-center mb-4">
+        <div class="col-md-8">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-white border-end-0">🔍</span>
+                <input type="text" id="searchInput" class="form-control border-start-0" 
+                       placeholder="Escribe el nombre del huésped para buscar...">
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-page="Create" class="btn btn-primary shadow-sm w-100 w-md-auto">
+                + Nueva Reservación
+            </a>
+        </div>
     </div>
 
     <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="reservationsTable">
                 <thead class="table-light">
                     <tr>
-                        <th>Nombre del Huésped</th>
+                        <th class="ps-4">Nombre del Huésped</th>
                         <th>Check-in</th>
                         <th>Check-out</th>
-                        <th>Habitación</th>
+                        <th class="text-center">Habitación</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -29,22 +43,22 @@
                         foreach (var item in Model.ListaReservaciones)
                         {
                             <tr>
-                                <td class="align-middle fw-semibold">@item.NombreHuesped</td>
-                                <td class="align-middle">@item.FechaEntrada.ToShortDateString()</td>
-                                <td class="align-middle">@item.FechaSalida.ToShortDateString()</td>
-                                <td class="align-middle">
-                                    <span class="badge bg-info text-dark rounded-pill px-3">@item.NumeroHabitacion</span>
+                                <td class="nombre-target fw-bold ps-4 text-capitalize">@item.NombreHuesped</td>
+                                <td>@item.FechaEntrada.ToShortDateString()</td>
+                                <td>@item.FechaSalida.ToShortDateString()</td>
+                                <td class="text-center">
+                                    <span class="badge rounded-pill bg-info text-dark px-3">
+                                        @item.NumeroHabitacion
+                                    </span>
                                 </td>
                             </tr>
                         }
                     }
                     else
                     {
-                        <tr>
+                        <tr id="noResultsRow">
                             <td colspan="4" class="text-center py-5 text-muted">
-                                <i class="fs-4 mb-2">🏨</i><br>
-                                No hay reservaciones registradas todavía.<br>
-                                ¡Haz clic en "Nueva Reservación" para empezar!
+                                No se encontraron reservaciones.
                             </td>
                         </tr>
                     }
@@ -53,3 +67,24 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // ESTE ES EL MOTOR DEL BUSCADOR
+        document.getElementById('searchInput').addEventListener('keyup', function () {
+            const searchText = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#reservationsTable tbody tr:not(#noResultsRow)');
+            
+            rows.forEach(row => {
+                const nombreHuesped = row.querySelector('.nombre-target').textContent.toLowerCase();
+                
+                // Si el nombre incluye lo que escribiste, se queda; si no, se esconde
+                if (nombreHuesped.includes(searchText)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+    </script>
+}
