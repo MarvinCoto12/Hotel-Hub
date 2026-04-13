@@ -19,47 +19,84 @@ namespace Hotel_Hub.Pages.Reservaciones
         [BindProperty]
         public Reservacion Reservacion { get; set; } = new Reservacion();
 
-        public List<SelectListItem> OpcionesHabitaciones { get; set; } = new()
-        {
-            new SelectListItem { Value = "101", Text = "Habitación 101 (Sencilla)" },
-            new SelectListItem { Value = "102", Text = "Habitación 102 (Sencilla)" },
-            new SelectListItem { Value = "201", Text = "Habitación 201 (Doble)" },
-            new SelectListItem { Value = "202", Text = "Habitación 202 (Doble)" },
-            new SelectListItem { Value = "301", Text = "Suite 301 (Presidencial)" }
-        };
+        public SelectList OpcionesHabitaciones { get; set; } = default!;
 
-        public IActionResult OnGet()
+        public async Task<IActionResult> OnGetAsync()
         {
+            await CargarListaVacia();
             return Page();
+        }
+
+        public async Task<JsonResult> OnGetVerificarDisponibilidad(DateTime? entrada, DateTime? salida)
+        {
+            if (!entrada.HasValue || !salida.HasValue)
+            {
+                return new JsonResult(new List<object>());
+            }
+
+            var habitaciones = await _contexto.Habitaciones.ToListAsync();
+
+            // Buscar choques de fechas
+            var reservasConflictivas = await _contexto.Reservaciones
+                .Where(r => entrada.Value < r.FechaSalida && salida.Value > r.FechaEntrada)
+                .ToListAsync();
+
+            var resultado = habitaciones.Select(h => {
+                var reservaChoque = reservasConflictivas.FirstOrDefault(r => r.HabitacionId == h.Id);
+                bool estaOcupada = reservaChoque != null;
+
+                string status = estaOcupada
+                    ? $"[OCUPADA - Libre el {reservaChoque!.FechaSalida?.ToShortDateString()}]"
+                    : "[Disponible]";
+
+                return new
+                {
+                    id = h.Id,
+                    texto = $"Habitación {h.Numero} ({h.Tipo}) - ${h.PrecioPorNoche}/noche {status}",
+                    disponible = !estaOcupada
+                };
+            });
+
+            return new JsonResult(resultado);
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            if (!ModelState.IsValid) return Page();
+            if (!ModelState.IsValid)
+            {
+                await CargarListaVacia();
+                return Page();
+            }
 
             bool ocupada = await _contexto.Reservaciones.AnyAsync(r =>
-                r.NumeroHabitacion == Reservacion.NumeroHabitacion &&
-                ((Reservacion.FechaEntrada >= r.FechaEntrada && Reservacion.FechaEntrada < r.FechaSalida) ||
-                 (Reservacion.FechaSalida > r.FechaEntrada && Reservacion.FechaSalida <= r.FechaSalida) ||
-                 (Reservacion.FechaEntrada <= r.FechaEntrada && Reservacion.FechaSalida >= r.FechaSalida))
+                r.HabitacionId == Reservacion.HabitacionId &&
+                (Reservacion.FechaEntrada < r.FechaSalida && Reservacion.FechaSalida > r.FechaEntrada)
             );
 
             if (ocupada)
             {
-                ModelState.AddModelError(string.Empty, $"Lo sentimos, la habitación {Reservacion.NumeroHabitacion} ya está reservada para las fechas seleccionadas.");
+                ModelState.AddModelError(string.Empty, "La habitación seleccionada ya no está disponible.");
+                await CargarListaVacia();
                 return Page();
             }
 
-            if (Reservacion.FechaSalida <= Reservacion.FechaEntrada)
+            var hab = await _contexto.Habitaciones.FindAsync(Reservacion.HabitacionId);
+            if (hab != null && Reservacion.FechaEntrada.HasValue && Reservacion.FechaSalida.HasValue)
             {
-                ModelState.AddModelError(string.Empty, "La fecha de salida debe ser posterior a la fecha de entrada.");
-                return Page();
+                int noches = (Reservacion.FechaSalida.Value - Reservacion.FechaEntrada.Value).Days;
+                Reservacion.CostoTotal = (noches <= 0 ? 1 : noches) * hab.PrecioPorNoche;
             }
 
             _contexto.Reservaciones.Add(Reservacion);
             await _contexto.SaveChangesAsync();
 
-            return RedirectToPage("./Index");
+            // ¡Redirigimos al Index filtrando automáticamente por el correo que acaba de usar!
+            return RedirectToPage("./Index", new { CorreoFiltro = Reservacion.CorreoUsuario });
+        }
+
+        private async Task CargarListaVacia()
+        {
+            OpcionesHabitaciones = new SelectList(new List<Habitacion>(), "Id", "Numero");
         }
     }
 }

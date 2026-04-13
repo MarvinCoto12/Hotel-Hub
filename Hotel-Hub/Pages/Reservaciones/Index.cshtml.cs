@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Hotel_Hub.Data;
 using Hotel_Hub.Models;
+using Microsoft.AspNetCore.Mvc;
 
-namespace Hotel_Hub.Pages.Reservaciones 
+namespace Hotel_Hub.Pages.Reservaciones
 {
     public class IndexModel : PageModel
     {
@@ -16,11 +17,25 @@ namespace Hotel_Hub.Pages.Reservaciones
 
         public IList<Reservacion> ListaReservaciones { get; set; } = new List<Reservacion>();
 
+        // Propiedad que atrapa el texto que el usuario escribe en el buscador
+        [BindProperty(SupportsGet = true)]
+        public string? CorreoFiltro { get; set; }
+
         public async Task OnGetAsync()
         {
-            if (_contexto.Reservaciones != null)
+            if (!string.IsNullOrEmpty(CorreoFiltro))
             {
-                ListaReservaciones = await _contexto.Reservaciones.ToListAsync();
+                // Solo busca en la BD si el usuario ingresó un correo
+                ListaReservaciones = await _contexto.Reservaciones
+                    .Include(r => r.Habitacion)
+                    .Where(r => r.CorreoUsuario == CorreoFiltro)
+                    .OrderByDescending(r => r.FechaEntrada)
+                    .ToListAsync();
+            }
+            else
+            {
+                // Si no hay correo, la lista se queda vacía
+                ListaReservaciones = new List<Reservacion>();
             }
         }
     }
