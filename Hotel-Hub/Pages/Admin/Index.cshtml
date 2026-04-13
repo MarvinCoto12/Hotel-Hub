@@ -1,0 +1,59 @@
+﻿@page
+@model Hotel_Hub.Pages.Admin.IndexModel
+@{
+    ViewData["Title"] = "Panel de Control";
+}
+
+<div class="container mt-4">
+    @if (!Model.EsAdmin)
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-4 text-center">
+                <h3 class="mb-4">Acceso Administrativo</h3>
+                <form method="post" asp-page-handler="Login">
+                    <input type="password" asp-for="PasswordIngresado" class="form-control mb-3" placeholder="Contraseña">
+                    <button class="btn btn-dark w-100">Entrar al Sistema</button>
+                </form>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Gestión Global de Reservas</h2>
+            <form method="post" asp-page-handler="Logout">
+                <button class="btn btn-outline-danger btn-sm">Cerrar Sesión</button>
+            </form>
+        </div>
+
+        <table class="table table-striped border shadow-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th>Huésped</th>
+                    <th>Correo</th>
+                    <th>Habitación</th>
+                    <th>Fechas</th>
+                    <th>Total</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.TodasLasReservaciones)
+                {
+                    <tr>
+                        <td>@item.NombreHuesped</td>
+                        <td>@item.CorreoUsuario</td>
+                        <td>@item.Habitacion?.Numero (@item.Habitacion?.Tipo)</td>
+                        <td>@item.FechaEntrada?.ToShortDateString() - @item.FechaSalida?.ToShortDateString()</td>
+                        <td>$@item.CostoTotal</td>
+                        <td>
+                            <form method="post" asp-page-handler="Eliminar" asp-route-id="@item.Id" onsubmit="return confirm('¿Seguro que desea borrar esta reserva?')">
+                                <button class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
