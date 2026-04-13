@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-@* Usamos Flexbox para que el footer siempre esté abajo *@
+
 <body class="d-flex flex-column min-vh-100">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
@@ -27,7 +27,6 @@
                             <a class="nav-link text-white" asp-page="/Reservaciones/Index">Reservaciones</a>
                         </li>
 
-                        @* --- VALIDACIÓN DE ADMIN LOGUEADO --- *@
                         @if (Context.Session.GetString("IsAdmin") == "true")
                         {
                             <li class="nav-item">
@@ -42,14 +41,12 @@
         </nav>
     </header>
 
-    @* El contenedor principal tiene 'flex-grow-1' para empujar el footer *@
     <div class="container flex-grow-1">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    @* mt-auto asegura que el footer se quede al fondo *@
     <footer class="border-top footer text-muted bg-light py-3 mt-auto">
         <div class="container text-center">
             &copy; 2026 - Hotel Hub - <span class="fw-bold">Proyecto UMOAR</span>

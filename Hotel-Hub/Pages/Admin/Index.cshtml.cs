@@ -19,11 +19,9 @@ namespace Hotel_Hub.Pages.Admin
 
         public async Task OnGetAsync()
         {
-            // Verificamos si la sesión de admin está activa
             if (HttpContext.Session.GetString("IsAdmin") == "true")
             {
                 EsAdmin = true;
-                // Aquí es donde daba el error: ahora la tabla 'Reservaciones' ya existirá
                 TodasLasReservaciones = await _contexto.Reservaciones
                     .Include(r => r.Habitacion)
                     .OrderByDescending(r => r.FechaEntrada)

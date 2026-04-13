@@ -36,7 +36,6 @@ namespace Hotel_Hub.Pages.Reservaciones
 
             var habitaciones = await _contexto.Habitaciones.ToListAsync();
 
-            // Buscar choques de fechas
             var reservasConflictivas = await _contexto.Reservaciones
                 .Where(r => entrada.Value < r.FechaSalida && salida.Value > r.FechaEntrada)
                 .ToListAsync();
@@ -90,7 +89,6 @@ namespace Hotel_Hub.Pages.Reservaciones
             _contexto.Reservaciones.Add(Reservacion);
             await _contexto.SaveChangesAsync();
 
-            // ¡Redirigimos al Index filtrando automáticamente por el correo que acaba de usar!
             return RedirectToPage("./Index", new { CorreoFiltro = Reservacion.CorreoUsuario });
         }
 

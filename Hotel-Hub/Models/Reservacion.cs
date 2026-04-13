@@ -10,7 +10,6 @@ namespace Hotel_Hub.Models
         [Display(Name = "Nombre del Huésped")]
         public string NombreHuesped { get; set; } = string.Empty;
 
-        // --- NUEVO: Para filtrar las reservaciones del cliente ---
         [Required(ErrorMessage = "El correo es necesario para identificar su reserva")]
         [EmailAddress]
         [Display(Name = "Su Correo Electrónico")]
