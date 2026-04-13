@@ -18,12 +18,12 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label asp-for="Reservacion.NombreHuesped" class="form-label fw-bold"></label>
-                                <input asp-for="Reservacion.NombreHuesped" class="form-control" placeholder="Escriba el nombre..." />
+                                <input asp-for="Reservacion.NombreHuesped" class="form-control" maxlength="40" placeholder="Escriba el nombre..." />
                                 <span asp-validation-for="Reservacion.NombreHuesped" class="text-danger small"></span>
                             </div>
                             <div class="col-md-6">
                                 <label asp-for="Reservacion.CorreoUsuario" class="form-label fw-bold"></label>
-                                <input asp-for="Reservacion.CorreoUsuario" type="email" class="form-control" placeholder="correo@ejemplo.com" />
+                                <input asp-for="Reservacion.CorreoUsuario" type="email" maxlength="50" class="form-control" placeholder="correo@ejemplo.com" />
                                 <span asp-validation-for="Reservacion.CorreoUsuario" class="text-danger small"></span>
                             </div>
                         </div>

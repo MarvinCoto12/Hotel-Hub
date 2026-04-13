@@ -16,7 +16,7 @@
         <div class="card-body">
             <form method="get" class="d-flex align-items-center gap-3">
                 <label for="CorreoFiltro" class="fw-bold mb-0">Buscar mis reservas:</label>
-                <input type="email" asp-for="CorreoFiltro" class="form-control w-50" placeholder="Ingrese el correo con el que reservó..." required />
+                <input type="email" asp-for="CorreoFiltro" class="form-control w-50" maxlength="50" placeholder="Ingrese el correo con el que reservó..." required />
                 <button type="submit" class="btn btn-dark px-4">Buscar</button>
                 @if (!string.IsNullOrEmpty(Model.CorreoFiltro))
                 {

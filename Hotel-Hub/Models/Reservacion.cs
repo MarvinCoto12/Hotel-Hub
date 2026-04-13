@@ -11,7 +11,7 @@ namespace Hotel_Hub.Models
         public string NombreHuesped { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El correo es necesario para identificar su reserva")]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "La dirección de correo electrónico no es válida")]
         [Display(Name = "Su Correo Electrónico")]
         public string CorreoUsuario { get; set; } = string.Empty;
 
