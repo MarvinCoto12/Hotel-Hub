@@ -1,7 +1,7 @@
 ﻿@page
 @model Hotel_Hub.Pages.Reservaciones.CreateModel
 @{
-    ViewData["Title"] = "Nueva Reservación";
+    ViewData["Title"] = "Nueva Reserva";
 }
 
 <div class="container mt-4">
@@ -9,7 +9,7 @@
         <div class="col-md-8">
             <div class="card shadow border-0">
                 <div class="card-header bg-dark text-white text-center py-3">
-                    <h4 class="mb-0">Registro de Huésped</h4>
+                    <h4 class="mb-0">Formulario de Registro</h4>
                 </div>
                 <div class="card-body p-4">
                     <form method="post">
@@ -18,40 +18,40 @@
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label asp-for="Reservacion.NombreHuesped" class="form-label fw-bold"></label>
-                                <input asp-for="Reservacion.NombreHuesped" class="form-control" maxlength="40" placeholder="Escriba el nombre..." />
-                                <span asp-validation-for="Reservacion.NombreHuesped" class="text-danger small"></span>
+                                <input asp-for="Reservacion.NombreHuesped" class="form-control" placeholder="Ej. Carlos Torres" />
+                                <span asp-validation-for="Reservacion.NombreHuesped" class="text-danger small fw-bold"></span>
                             </div>
                             <div class="col-md-6">
                                 <label asp-for="Reservacion.CorreoUsuario" class="form-label fw-bold"></label>
-                                <input asp-for="Reservacion.CorreoUsuario" type="email" maxlength="50" class="form-control" placeholder="correo@ejemplo.com" />
-                                <span asp-validation-for="Reservacion.CorreoUsuario" class="text-danger small"></span>
+                                <input asp-for="Reservacion.CorreoUsuario" class="form-control" placeholder="usuario@gmail.com" />
+                                <span asp-validation-for="Reservacion.CorreoUsuario" class="text-danger small fw-bold"></span>
                             </div>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label asp-for="Reservacion.FechaEntrada" class="form-label fw-bold"></label>
-                                <input asp-for="Reservacion.FechaEntrada" id="fechaEntrada" class="form-control" type="date" />
-                                <span asp-validation-for="Reservacion.FechaEntrada" class="text-danger small"></span>
+                                <input asp-for="Reservacion.FechaEntrada" class="form-control" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                <span asp-validation-for="Reservacion.FechaEntrada" class="text-danger small fw-bold"></span>
                             </div>
                             <div class="col-md-6">
                                 <label asp-for="Reservacion.FechaSalida" class="form-label fw-bold"></label>
-                                <input asp-for="Reservacion.FechaSalida" id="fechaSalida" class="form-control" type="date" />
-                                <span asp-validation-for="Reservacion.FechaSalida" class="text-danger small"></span>
+                                <input asp-for="Reservacion.FechaSalida" class="form-control" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                <span asp-validation-for="Reservacion.FechaSalida" class="text-danger small fw-bold"></span>
                             </div>
                         </div>
 
                         <div class="mb-4">
                             <label asp-for="Reservacion.HabitacionId" class="form-label fw-bold"></label>
-                            <select asp-for="Reservacion.HabitacionId" id="selectHabitacion" class="form-select">
-                                <option value="" disabled selected hidden>-- Primero seleccione las fechas --</option>
+                            <select asp-for="Reservacion.HabitacionId" asp-items="Model.OpcionesHabitaciones" class="form-select">
+                                <option value="" disabled selected hidden>-- Seleccione una habitación --</option>
                             </select>
-                            <span asp-validation-for="Reservacion.HabitacionId" class="text-danger small"></span>
+                            <span asp-validation-for="Reservacion.HabitacionId" class="text-danger small fw-bold"></span>
                         </div>
 
                         <div class="d-grid gap-2">
-                            <button type="submit" id="btnGuardar" class="btn btn-primary btn-lg fw-bold shadow-sm" disabled>Confirmar Reservación</button>
-                            <a asp-page="Index" class="btn btn-outline-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-success btn-lg shadow-sm">Confirmar Reservación</button>
+                            <a asp-page="Index" class="btn btn-dark shadow-sm">Volver</a>
                         </div>
                     </form>
                 </div>
@@ -59,60 +59,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        const inputEntrada = document.getElementById('fechaEntrada');
-        const inputSalida = document.getElementById('fechaSalida');
-        const selectHab = document.getElementById('selectHabitacion');
-        const btnGuardar = document.getElementById('btnGuardar');
-
-        const hoy = new Date().toISOString().split('T')[0];
-        inputEntrada.min = hoy;
-        inputSalida.min = hoy;
-
-        function actualizarDisponibilidad() {
-            const entrada = inputEntrada.value;
-            const salida = inputSalida.value;
-
-            inputSalida.min = entrada || hoy;
-
-            if (!entrada || !salida) {
-                selectHab.innerHTML = '<option value="" disabled selected hidden>-- Primero seleccione las fechas --</option>';
-                selectHab.disabled = true;
-                btnGuardar.disabled = true;
-                return;
-            }
-
-            if (salida < entrada) {
-                inputSalida.value = entrada;
-            }
-
-            fetch(`?handler=VerificarDisponibilidad&entrada=${entrada}&salida=${salida}`)
-                .then(res => res.json())
-                .then(data => {
-                    selectHab.disabled = false;
-                    selectHab.innerHTML = '<option value="" disabled selected hidden>-- Seleccione una Habitación --</option>';
-
-                    data.forEach(h => {
-                        const opt = document.createElement('option');
-                        opt.value = h.id;
-                        opt.textContent = h.texto;
-                        if (!h.disponible) {
-                            opt.disabled = true;
-                            opt.style.color = 'gray';
-                        }
-                        selectHab.appendChild(opt);
-                    });
-
-                    btnGuardar.disabled = false;
-                });
-        }
-
-        inputEntrada.addEventListener('change', actualizarDisponibilidad);
-        inputSalida.addEventListener('change', actualizarDisponibilidad);
-    </script>
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
