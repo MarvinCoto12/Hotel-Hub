@@ -5,9 +5,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
 
-builder.Services.AddDbContext<ContextoBaseDatos>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("ConexionPorDefecto")));
-
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -15,12 +12,14 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+builder.Services.AddDbContext<ContextoBaseDatos>(opciones =>
+    opciones.UseSqlite(builder.Configuration.GetConnectionString("ConexionPorDefecto")));
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
     var contexto = scope.ServiceProvider.GetRequiredService<ContextoBaseDatos>();
-    
     contexto.Database.EnsureCreated();
 }
 
@@ -31,6 +30,8 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
 app.UseStaticFiles();
 
 app.UseRouting();

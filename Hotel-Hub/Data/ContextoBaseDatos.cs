@@ -10,9 +10,8 @@ namespace Hotel_Hub.Data
         }
 
         public DbSet<Reservacion> Reservaciones { get; set; }
-        public DbSet<Habitacion> Habitaciones { get; set; } // Nueva tabla
+        public DbSet<Habitacion> Habitaciones { get; set; } 
 
-        // Insertar datos por defecto al crear la base de datos
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
