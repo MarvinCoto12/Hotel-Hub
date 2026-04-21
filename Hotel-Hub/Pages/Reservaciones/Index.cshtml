@@ -1,40 +1,41 @@
 ﻿@page
 @model Hotel_Hub.Pages.Reservaciones.IndexModel
 @{
-    ViewData["Title"] = "Gestión de Reservaciones";
+    ViewData["Title"] = "Mis Reservaciones";
 }
 
 <div class="container mt-4">
-    <div class="row mb-3">
-        <div class="col-12">
-            <h2 class="text-primary fw-bold border-bottom pb-2">Gestión de Reservaciones</h2>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold">Mis Reservaciones</h2>
+        <a asp-page="Create" class="btn btn-primary shadow-sm">
+            + Nueva Reservación
+        </a>
     </div>
 
-    <div class="row g-3 align-items-center mb-4">
-        <div class="col-md-8">
-            <div class="input-group shadow-sm">
-                <span class="input-group-text bg-white border-end-0">🔍</span>
-                <input type="text" id="searchInput" class="form-control border-start-0" 
-                       placeholder="Escribe el nombre del huésped para buscar...">
-            </div>
-        </div>
-        <div class="col-md-4 text-end">
-            <a asp-page="Create" class="btn btn-primary shadow-sm w-100 w-md-auto">
-                + Nueva Reservación
-            </a>
+    <div class="card shadow-sm border-0 mb-4 bg-light">
+        <div class="card-body">
+            <form method="get" class="d-flex align-items-center gap-3">
+                <label for="CorreoFiltro" class="fw-bold mb-0">Buscar mis reservas:</label>
+                <input type="email" asp-for="CorreoFiltro" class="form-control w-50" maxlength="50" placeholder="Ingrese el correo con el que reservó..." required />
+                <button type="submit" class="btn btn-dark px-4">Buscar</button>
+                @if (!string.IsNullOrEmpty(Model.CorreoFiltro))
+                {
+                    <a asp-page="./Index" class="btn btn-outline-secondary">Limpiar</a>
+                }
+            </form>
         </div>
     </div>
 
     <div class="card shadow-sm border-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="reservationsTable">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-4">Nombre del Huésped</th>
-                        <th>Check-in</th>
-                        <th>Check-out</th>
-                        <th class="text-center">Habitación</th>
+                        <th>Huésped</th>
+                        <th>Estadía</th>
+                        <th>Habitación</th>
+                        <th>Tipo</th>
+                        <th>Costo Total</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -43,22 +44,40 @@
                         foreach (var item in Model.ListaReservaciones)
                         {
                             <tr>
-                                <td class="nombre-target fw-bold ps-4 text-capitalize">@item.NombreHuesped</td>
-                                <td>@item.FechaEntrada.ToShortDateString()</td>
-                                <td>@item.FechaSalida.ToShortDateString()</td>
-                                <td class="text-center">
-                                    <span class="badge rounded-pill bg-info text-dark px-3">
-                                        @item.NumeroHabitacion
-                                    </span>
+                                <td class="align-middle fw-semibold">
+                                    @item.NombreHuesped <br />
+                                    <small class="text-muted fw-normal">@item.CorreoUsuario</small>
+                                </td>
+                                <td class="align-middle">
+                                    <small class="text-muted d-block">Entrada: @item.FechaEntrada?.ToShortDateString()</small>
+                                    <small class="text-muted d-block">Salida: @item.FechaSalida?.ToShortDateString()</small>
+                                </td>
+                                <td class="align-middle fw-bold">
+                                    #@(item.Habitacion?.Numero ?? "N/A")
+                                </td>
+                                <td class="align-middle">
+                                    <span class="badge bg-info text-dark">@(item.Habitacion?.Tipo ?? "N/A")</span>
+                                </td>
+                                <td class="align-middle text-success fw-bold">
+                                    $@item.CostoTotal.ToString("0.00")
                                 </td>
                             </tr>
                         }
                     }
+                    else if (!string.IsNullOrEmpty(Model.CorreoFiltro))
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-danger">
+                                No se encontraron reservaciones activas para el correo: <b>@Model.CorreoFiltro</b>
+                            </td>
+                        </tr>
+                    }
                     else
                     {
-                        <tr id="noResultsRow">
-                            <td colspan="4" class="text-center py-5 text-muted">
-                                No se encontraron reservaciones.
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fs-4 mb-2">🔍</i><br>
+                                Ingrese su correo arriba para ver sus reservaciones protegidas.
                             </td>
                         </tr>
                     }
@@ -67,24 +86,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        // ESTE ES EL MOTOR DEL BUSCADOR
-        document.getElementById('searchInput').addEventListener('keyup', function () {
-            const searchText = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#reservationsTable tbody tr:not(#noResultsRow)');
-            
-            rows.forEach(row => {
-                const nombreHuesped = row.querySelector('.nombre-target').textContent.toLowerCase();
-                
-                // Si el nombre incluye lo que escribiste, se queda; si no, se esconde
-                if (nombreHuesped.includes(searchText)) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            });
-        });
-    </script>
-}

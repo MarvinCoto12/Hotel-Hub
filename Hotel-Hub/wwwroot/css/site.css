@@ -49,3 +49,13 @@ footer {
     border-top: 1px solid #eee;
     font-size: 0.9rem;
 }
+
+/* Asegura que el HTML y el Body ocupen toda la pantalla */
+html, body {
+    height: 100%;
+}
+
+/* Evita que el contenido se pegue demasiado al footer */
+main {
+    margin-bottom: 2rem;
+}

@@ -10,56 +10,68 @@ namespace Hotel_Hub.Pages.Reservaciones
     public class CreateModel : PageModel
     {
         private readonly ContextoBaseDatos _contexto;
-
-        public CreateModel(ContextoBaseDatos contexto)
-        {
-            _contexto = contexto;
-        }
+        public CreateModel(ContextoBaseDatos contexto) => _contexto = contexto;
 
         [BindProperty]
         public Reservacion Reservacion { get; set; } = new Reservacion();
 
-        public List<SelectListItem> OpcionesHabitaciones { get; set; } = new()
-        {
-            new SelectListItem { Value = "101", Text = "Habitación 101 (Sencilla)" },
-            new SelectListItem { Value = "102", Text = "Habitación 102 (Sencilla)" },
-            new SelectListItem { Value = "201", Text = "Habitación 201 (Doble)" },
-            new SelectListItem { Value = "202", Text = "Habitación 202 (Doble)" },
-            new SelectListItem { Value = "301", Text = "Suite 301 (Presidencial)" }
-        };
+        public SelectList OpcionesHabitaciones { get; set; } = default!;
 
-        public IActionResult OnGet()
+        public async Task<IActionResult> OnGetAsync()
         {
+            await CargarHabitaciones();
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            if (!ModelState.IsValid) return Page();
-
-            bool ocupada = await _contexto.Reservaciones.AnyAsync(r =>
-                r.NumeroHabitacion == Reservacion.NumeroHabitacion &&
-                ((Reservacion.FechaEntrada >= r.FechaEntrada && Reservacion.FechaEntrada < r.FechaSalida) ||
-                 (Reservacion.FechaSalida > r.FechaEntrada && Reservacion.FechaSalida <= r.FechaSalida) ||
-                 (Reservacion.FechaEntrada <= r.FechaEntrada && Reservacion.FechaSalida >= r.FechaSalida))
-            );
-
-            if (ocupada)
+            if (!ModelState.IsValid)
             {
-                ModelState.AddModelError(string.Empty, $"Lo sentimos, la habitación {Reservacion.NumeroHabitacion} ya está reservada para las fechas seleccionadas.");
+                await CargarHabitaciones();
                 return Page();
             }
 
-            if (Reservacion.FechaSalida <= Reservacion.FechaEntrada)
+            DateTime fEntrada = Reservacion.FechaEntrada!.Value;
+            DateTime fSalida = Reservacion.FechaSalida!.Value;
+
+            if (fSalida < fEntrada)
             {
-                ModelState.AddModelError(string.Empty, "La fecha de salida debe ser posterior a la fecha de entrada.");
+                ModelState.AddModelError("Reservacion.FechaSalida", "La salida no puede ser antes de la entrada.");
+                await CargarHabitaciones();
                 return Page();
+            }
+
+            bool estaOcupada = await _contexto.Reservaciones.AnyAsync(r =>
+                r.HabitacionId == Reservacion.HabitacionId &&
+                (fEntrada < r.FechaSalida && fSalida > r.FechaEntrada)
+            );
+
+            if (estaOcupada)
+            {
+                ModelState.AddModelError("Reservacion.HabitacionId", "Habitación ocupada en esas fechas.");
+                await CargarHabitaciones();
+                return Page();
+            }
+
+            var hab = await _contexto.Habitaciones.FindAsync(Reservacion.HabitacionId);
+            if (hab != null)
+            {
+                int noches = (fSalida - fEntrada).Days;
+                Reservacion.CostoTotal = (noches <= 0 ? 1 : noches) * hab.PrecioPorNoche;
             }
 
             _contexto.Reservaciones.Add(Reservacion);
             await _contexto.SaveChangesAsync();
 
-            return RedirectToPage("./Index");
+            return RedirectToPage("./Index", new { CorreoFiltro = Reservacion.CorreoUsuario });
+        }
+
+        private async Task CargarHabitaciones()
+        {
+            var lista = await _contexto.Habitaciones
+                .Select(h => new { h.Id, Texto = $"{h.Numero} ({h.Tipo}) - ${h.PrecioPorNoche}/noche" })
+                .ToListAsync();
+            OpcionesHabitaciones = new SelectList(lista, "Id", "Texto");
         }
     }
 }
