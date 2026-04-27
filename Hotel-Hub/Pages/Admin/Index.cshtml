@@ -4,56 +4,101 @@
     ViewData["Title"] = "Panel de Control";
 }
 
+<style>
+    .admin-wrapper { min-height: 70vh; display: flex; align-items: center; }
+    .card-login { border: none; border-radius: 15px; background: rgba(255,255,255,0.95); }
+    .table-custom { border-radius: 10px; overflow: hidden; }
+</style>
+
 <div class="container mt-4">
     @if (!Model.EsAdmin)
     {
-        <div class="row justify-content-center">
-            <div class="col-md-4 text-center">
-                <h3 class="mb-4">Acceso Administrativo</h3>
-                <form method="post" asp-page-handler="Login">
-                    <input type="password" asp-for="PasswordIngresado" class="form-control mb-3" placeholder="Contraseña">
-                    <button class="btn btn-dark w-100">Entrar al Sistema</button>
-                </form>
+        <div class="row justify-content-center admin-wrapper">
+            <div class="col-md-5 col-lg-4">
+                <div class="card shadow-lg card-login p-4">
+                    <div class="text-center mb-4">
+                        <div class="bg-dark text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fs-2">H</i>
+                        </div>
+                        <h3 class="fw-bold text-dark">Acceso Administrativo</h3>
+                        <p class="text-muted small">Panel de Gestión Hotelera</p>
+                    </div>
+
+                    <form method="post" asp-page-handler="Login">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">CONTRASEÑA</label>
+                            <input type="password" asp-for="PasswordIngresado"
+                                   class="form-control form-control-lg border-2"
+                                   placeholder="••••••••"
+                                   style="border-radius: 10px;">
+                        </div>
+                        <button class="btn btn-dark w-100 btn-lg shadow-sm" style="border-radius: 10px;">
+                            Entrar al Sistema
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     }
     else
     {
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Gestión Global de Reservas</h2>
-            <form method="post" asp-page-handler="Logout">
-                <button class="btn btn-outline-danger btn-sm">Cerrar Sesión</button>
-            </form>
-        </div>
+        <div class="card border-0 shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark mb-0">Gestión Global de Reservas</h2>
+                    <span class="badge bg-success">@Model.TodasLasReservaciones.Count Reservas Activas</span>
+                </div>
+                <form method="post" asp-page-handler="Logout">
+                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                        <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                    </button>
+                </form>
+            </div>
 
-        <table class="table table-striped border shadow-sm">
-            <thead class="table-dark">
-                <tr>
-                    <th>Huésped</th>
-                    <th>Correo</th>
-                    <th>Habitación</th>
-                    <th>Fechas</th>
-                    <th>Total</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.TodasLasReservaciones)
-                {
-                    <tr>
-                        <td>@item.NombreHuesped</td>
-                        <td>@item.CorreoUsuario</td>
-                        <td>@item.Habitacion?.Numero (@item.Habitacion?.Tipo)</td>
-                        <td>@item.FechaEntrada?.ToShortDateString() - @item.FechaSalida?.ToShortDateString()</td>
-                        <td>$@item.CostoTotal</td>
-                        <td>
-                            <form method="post" asp-page-handler="Eliminar" asp-route-id="@item.Id" onsubmit="return confirm('¿Seguro que desea borrar esta reserva?')">
-                                <button class="btn btn-danger btn-sm">Eliminar</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+            <div class="table-responsive table-custom shadow-sm">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark text-uppercase small">
+                        <tr>
+                            <th class="ps-3">Huésped</th>
+                            <th>Correo</th>
+                            <th>Habitación</th>
+                            <th>Fechas</th>
+                            <th>Total</th>
+                            <th class="text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.TodasLasReservaciones)
+                        {
+                            <tr>
+                                <td class="ps-3 fw-bold text-dark">@item.NombreHuesped</td>
+                                <td class="text-muted small">@item.CorreoUsuario</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        Hab. @item.Habitacion?.Numero
+                                    </span>
+                                    <div class="small text-muted text-truncate" style="max-width: 100px;">
+                                        @item.Habitacion?.Tipo
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="small fw-bold">@item.FechaEntrada?.ToShortDateString()</div>
+                                    <div class="small text-muted">@item.FechaSalida?.ToShortDateString()</div>
+                                </td>
+                                <td class="fw-bold text-success">$@item.CostoTotal</td>
+                                <td class="text-center">
+                                    <form method="post" asp-page-handler="Eliminar" asp-route-id="@item.Id"
+                                          onsubmit="return confirm('¿Seguro que desea borrar esta reserva?')">
+                                        <button class="btn btn-outline-danger btn-sm border-0">
+                                            <i class="bi bi-trash3"></i> Borrar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     }
 </div>
