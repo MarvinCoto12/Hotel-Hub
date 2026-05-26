@@ -41,19 +41,17 @@ namespace Hotel_Hub.Pages.Reservaciones
                 return Page();
             }
 
-            // Validación mejorada de disponibilidad
             bool estaOcupada = await _contexto.Reservaciones.AnyAsync(r =>
                 r.HabitacionId == Reservacion.HabitacionId &&
                 (
-                    (fEntrada >= r.FechaEntrada && fEntrada < r.FechaSalida) || // Nueva entrada choca con una existente
-                    (fSalida > r.FechaEntrada && fSalida <= r.FechaSalida) ||  // Nueva salida choca con una existente
-                    (fEntrada <= r.FechaEntrada && fSalida >= r.FechaSalida)    // Nueva reserva envuelve a una existente
+                    (fEntrada >= r.FechaEntrada && fEntrada < r.FechaSalida) || //entrada choca con una existente
+                    (fSalida > r.FechaEntrada && fSalida <= r.FechaSalida) ||  //salida choca con una existente
+                    (fEntrada <= r.FechaEntrada && fSalida >= r.FechaSalida)    //reserva envuelve a una existente
                 )
             );
 
             if (estaOcupada)
             {
-                // Mensaje más claro para el usuario
                 ModelState.AddModelError("Reservacion.HabitacionId", "Esta habitación ya tiene una reserva confirmada para las fechas seleccionadas.");
                 await CargarHabitaciones();
                 return Page();
