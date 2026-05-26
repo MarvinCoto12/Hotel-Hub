@@ -13,7 +13,7 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddDbContext<ContextoBaseDatos>(opciones =>
-    opciones.UseSqlite(builder.Configuration.GetConnectionString("ConexionPorDefecto")));
+    opciones.UseNpgsql(builder.Configuration.GetConnectionString("ContextoBaseDatos")));
 
 var app = builder.Build();
 
@@ -30,13 +30,11 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
 
 app.UseRouting();
 
 app.UseSession();
-
 app.UseAuthorization();
 
 app.MapRazorPages();
