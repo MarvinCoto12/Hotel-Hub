@@ -43,6 +43,7 @@
                         <th>Habitación</th>
                         <th>Tipo</th>
                         <th>Costo Total</th>
+                        <th class="text-center">Factura</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -68,13 +69,27 @@
                                 <td class="align-middle text-success fw-bold">
                                     $@item.CostoTotal.ToString("0.00")
                                 </td>
+                                <td class="align-middle text-center">
+                                    @if (DateTime.UtcNow.Date >= item.FechaSalida?.Date)
+                                    {
+                                        <a asp-page-handler="DescargarFactura" asp-route-id="@item.Id" class="btn btn-sm btn-danger shadow-sm">
+                                            📥 Descargar PDF
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary text-white small" title="La factura se emite al finalizar la estadía">
+                                            🔒 Pendiente de Check-out
+                                        </span>
+                                    }
+                                </td>
                             </tr>
                         }
                     }
                     else if (!string.IsNullOrEmpty(Model.CorreoFiltro))
                     {
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-danger">
+                            <td colspan="6" class="text-center py-5 text-danger">
                                 No se encontraron reservaciones activas para el correo: <b>@Model.CorreoFiltro</b>
                             </td>
                         </tr>
@@ -82,7 +97,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">
+                            <td colspan="6" class="text-center py-5 text-muted">
                                 <i class="fs-4 mb-2">🔍</i><br>
                                 Ingrese su correo arriba para ver sus reservaciones protegidas.
                             </td>
