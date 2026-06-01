@@ -1,0 +1,114 @@
+﻿@page
+@model Hotel_Hub.Pages.Admin.MensajesModel
+@{
+    ViewData["Title"] = "Panel de Soporte";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded-3 shadow-sm border border-secondary"
+         style="background-color: rgba(33, 37, 41, 0.85); backdrop-filter: blur(4px);">
+        <h2 class="fw-bold text-white mb-0" style="font-size: 1.65rem; letter-spacing: -0.5px;">
+            📥 Bandeja de Servicio al Cliente
+        </h2>
+        <span class="badge bg-light text-dark fw-semibold p-2 fs-6 shadow-sm">Panel Administrativo</span>
+    </div>
+
+    <div class="card shadow-sm border-0">
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Huésped / Correo</th>
+                            <th>Asunto y Mensaje</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.ListaMensajes != null && Model.ListaMensajes.Any())
+                        {
+                            foreach (var item in Model.ListaMensajes)
+                            {
+                                string badgeColor = item.Estado switch
+                                {
+                                    "Pendiente" => "bg-warning text-dark",
+                                    "Respondido" => "bg-success text-white",
+                                    _ => "bg-secondary text-white"
+                                };
+
+                                <tr>
+                                    <td class="small text-muted" style="width: 12%;">
+                                        @item.FechaEnvio.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+                                    <td style="width: 23%;">
+                                        <div class="fw-bold text-dark">@item.Nombre</div>
+                                        <small class="text-muted">@item.Correo</small>
+                                    </td>
+                                    <td style="width: 40%; max-width: 0;">
+                                        <div class="fw-bold text-dark text-truncate">@item.Asunto</div>
+                                        <p class="text-secondary small mb-0 text-truncate">@item.Mensaje</p>
+                                    </td>
+                                    <td style="width: 10%;">
+                                        <span class="badge @badgeColor">@item.Estado</span>
+                                    </td>
+                                    <td class="text-center" style="width: 15%;">
+                                        <div class="d-inline-flex gap-1 align-items-center">
+                                            <button class="btn btn-sm btn-success"
+                                                    type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#collapseMensaje-@item.Id"
+                                                    aria-expanded="false"
+                                                    aria-controls="collapseMensaje-@item.Id"
+                                                    title="Ver mensaje completo">
+                                                👁️‍🗨️
+                                            </button>
+
+                                            <form method="post" asp-page-handler="CambiarEstado" asp-route-id="@item.Id" class="d-inline-flex gap-1 mb-0">
+                                                @if (item.Estado != "Respondido")
+                                                {
+                                                    <button type="submit" name="nuevoEstado" value="Respondido" class="btn btn-sm btn-success" title="Marcar como Respondido">✓</button>
+                                                }
+                                                @if (item.Estado != "Archivado")
+                                                {
+                                                    <button type="submit" name="nuevoEstado" value="Archivado" class="btn btn-sm btn-outline-secondary" title="Archivar Mensaje">📁</button>
+                                                }
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="border-0">
+                                    <td colspan="5" class="p-0 border-0">
+                                        <div class="collapse" id="collapseMensaje-@item.Id">
+                                            <div class="p-4 bg-light border-start border-4 border-success text-dark">
+                                                <div class="mb-2">
+                                                    <span class="badge bg-dark me-2">Asunto:</span>
+                                                    <strong class="text-dark">@item.Asunto</strong>
+                                                </div>
+                                                <div class="p-3 bg-white rounded shadow-sm border text-dark" style="white-space: pre-wrap; word-break: break-word; font-size: 0.95rem; line-height: 1.6;">
+                                                    @item.Mensaje
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    📥 No hay mensajes ni consultas en la bandeja de entrada actualmente.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
