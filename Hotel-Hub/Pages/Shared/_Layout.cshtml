@@ -18,10 +18,16 @@
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item"><a class="nav-link" asp-page="/Index">Inicio</a></li>
                         <li class="nav-item"><a class="nav-link" asp-page="/Reservaciones/Index">Reservaciones</a></li>
+
+                        <li class="nav-item"><a class="nav-link" asp-page="/Contacto/Contacto">Soporte y Ayuda</a></li>
+
                         @if (Context.Session.GetString("IsAdmin") == "true")
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-warning fw-bold border border-warning rounded px-2 ms-lg-3" asp-page="/Admin/Index">⚙️ Admin</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-danger fw-bold ms-lg-2" asp-page="/Admin/Mensajes">Bandeja Soporte</a>
                             </li>
                         }
                     </ul>
@@ -42,5 +48,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

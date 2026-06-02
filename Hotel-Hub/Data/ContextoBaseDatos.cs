@@ -10,7 +10,8 @@ namespace Hotel_Hub.Data
         }
 
         public DbSet<Reservacion> Reservaciones { get; set; }
-        public DbSet<Habitacion> Habitaciones { get; set; } 
+        public DbSet<Habitacion> Habitaciones { get; set; }
+        public DbSet<MensajeSoporte> MensajesSoporte { get; set; } // <- NUEVO
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
