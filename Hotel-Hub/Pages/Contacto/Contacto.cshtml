@@ -26,25 +26,35 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="NuevoMensaje.Nombre" class="form-label fw-semibold"></label>
-                                <input asp-for="NuevoMensaje.Nombre" class="form-control text-dark" placeholder="Ej. Juan Pérez" />
+                                <input asp-for="NuevoMensaje.Nombre" class="form-control text-muted" placeholder="Ej. Juan Pérez" required />
                                 <span asp-validation-for="NuevoMensaje.Nombre" class="text-danger small"></span>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label asp-for="NuevoMensaje.Correo" class="form-label fw-semibold"></label>
-                                <input asp-for="NuevoMensaje.Correo" class="form-control text-dark" placeholder="nombre@correo.com" />
+                                <input asp-for="NuevoMensaje.Correo" id="InputCorreo" class="form-control text-muted" placeholder="nombre@correo.com" required />
                                 <span asp-validation-for="NuevoMensaje.Correo" class="text-danger small"></span>
                             </div>
                         </div>
 
                         <div class="mb-3">
+                            <label asp-for="NuevoMensaje.ReservacionId" class="form-label fw-semibold"></label>
+                            <select asp-for="NuevoMensaje.ReservacionId" id="ComboReservas" class="form-select text-muted" disabled>
+                                <option value="" disabled selected>-- Primero escribe tu correo arriba --</option>
+                            </select>
+                            <div id="LoadingIndicador" class="form-text text-primary d-none fw-bold">
+                                ⏳ Buscando reservaciones...
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
                             <label asp-for="NuevoMensaje.Asunto" class="form-label fw-semibold"></label>
-                            <input asp-for="NuevoMensaje.Asunto" class="form-control text-dark" placeholder="Ej. Duda sobre check-in, cancelación..." />
+                            <input asp-for="NuevoMensaje.Asunto" class="form-control text-muted" placeholder="Ej. Duda sobre check-in, cancelación..." required />
                             <span asp-validation-for="NuevoMensaje.Asunto" class="text-danger small"></span>
                         </div>
 
                         <div class="mb-4">
                             <label asp-for="NuevoMensaje.Mensaje" class="form-label fw-semibold"></label>
-                            <textarea asp-for="NuevoMensaje.Mensaje" class="form-control text-dark" rows="5" placeholder="Escribe detalladamente tu solicitud aquí..."></textarea>
+                            <textarea asp-for="NuevoMensaje.Mensaje" class="form-control text-muted" rows="5" placeholder="Escribe detalladamente tu solicitud aquí..." required></textarea>
                             <span asp-validation-for="NuevoMensaje.Mensaje" class="text-danger small"></span>
                         </div>
 
@@ -62,4 +72,47 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.getElementById('InputCorreo').addEventListener('blur', function () {
+            var correo = this.value;
+            var combo = document.getElementById('ComboReservas');
+            var loading = document.getElementById('LoadingIndicador');
+
+            if (correo.includes('@@')) {
+                loading.classList.remove('d-none');
+                combo.disabled = true;
+                combo.innerHTML = '<option value="" disabled selected>Buscando...</option>';
+
+                fetch(`?handler=BuscarReservas&correo=${encodeURIComponent(correo)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        loading.classList.add('d-none');
+
+                        if (data.length > 0) {
+                            combo.innerHTML = '<option value="" disabled selected>-- Selecciona una reservación (Opcional) --</option>';
+                            combo.disabled = false;
+
+                            data.forEach(item => {
+                                var option = document.createElement('option');
+                                option.value = item.id;
+                                option.text = item.texto;
+                                combo.appendChild(option);
+                            });
+                        } else {
+                            combo.innerHTML = '<option value="" disabled selected>-- No se encontraron reservaciones para este correo --</option>';
+                            combo.disabled = true;
+                        }
+                    })
+                    .catch(error => {
+                        loading.classList.add('d-none');
+                        combo.innerHTML = '<option value="" disabled selected>-- Error de conexión --</option>';
+                        combo.disabled = true;
+                    });
+            } else {
+                combo.innerHTML = '<option value="" disabled selected>-- Primero escribe tu correo arriba --</option>';
+                combo.disabled = true;
+            }
+        });
+    </script>
 }

@@ -24,6 +24,7 @@ namespace Hotel_Hub.Pages.Admin
         {
             // Listar primero los mensajes más recientes
             ListaMensajes = await _contexto.MensajesSoporte
+                .Include(m => m.Reservacion)
                 .OrderByDescending(m => m.FechaEnvio)
                 .ToListAsync();
         }
