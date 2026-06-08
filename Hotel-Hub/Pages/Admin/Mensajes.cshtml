@@ -4,6 +4,21 @@
     ViewData["Title"] = "Panel de Soporte";
 }
 
+@if (TempData["Exito"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mx-4 mt-3 shadow-sm" role="alert">
+        🚀 @TempData["Exito"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mx-4 mt-3 shadow-sm" role="alert">
+        ❌ @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded-3 shadow-sm border border-secondary"
          style="background-color: rgba(33, 37, 41, 0.85); backdrop-filter: blur(4px);">
@@ -46,7 +61,6 @@
                                     <td style="width: 23%;">
                                         <div class="fw-bold text-dark">@item.Nombre</div>
                                         <small class="text-muted">@item.Correo</small>
-
                                         @if (item.ReservacionId != null)
                                         {
                                             <br />
@@ -73,18 +87,11 @@
                                                     data-bs-target="#collapseMensaje-@item.Id"
                                                     aria-expanded="false"
                                                     aria-controls="collapseMensaje-@item.Id"
-                                                    title="Ver mensaje completo">
-                                                👁️‍🗨️
+                                                    title="Ver y responder mensaje">
+                                                👁️‍🗨️ Responder
                                             </button>
 
                                             <form method="post" asp-page-handler="CambiarEstado" asp-route-id="@item.Id" class="d-inline-flex gap-1 mb-0">
-                                                @* COMENTADO TEMPORALMENTE: Se automatizará en el Punto 2
-                                                @if (item.Estado != "Respondido")
-                                                {
-                                                    <button type="submit" name="nuevoEstado" value="Respondido" class="btn btn-sm btn-success" title="Marcar como Respondido">✓</button>
-                                                }
-                                                *@
-                                                @* Mantenemos el botón de archivar porque sirve para limpiar la bandeja *@
                                                 @if (item.Estado != "Archivado")
                                                 {
                                                     <button type="submit" name="nuevoEstado" value="Archivado" class="btn btn-sm btn-outline-secondary" title="Archivar Mensaje">📁</button>
@@ -109,7 +116,38 @@
                                                         </span>
                                                     }
                                                 </div>
-                                                <div class="p-3 bg-white rounded shadow-sm border text-dark" style="white-space: pre-wrap; word-break: break-word; font-size: 0.95rem; line-height: 1.6;">@item.Mensaje</div>
+                                                <div class="p-3 bg-white rounded shadow-sm border text-dark mb-3" style="white-space: pre-wrap; word-break: break-word; font-size: 0.95rem; line-height: 1.6;">@item.Mensaje</div>
+
+                                                @if (item.Estado == "Pendiente")
+                                                {
+                                                    <div class="card border-0 shadow-sm rounded-3">
+                                                        <div class="card-header bg-dark text-white fw-bold py-2">
+                                                            ✍️ Redactar Respuesta al Huésped
+                                                        </div>
+                                                        <div class="card-body bg-white p-3">
+                                                            <form method="post" asp-page-handler="EnviarRespuesta" asp-route-id="@item.Id">
+                                                                <div class="mb-3">
+                                                                    <textarea name="respuestaTexto" class="form-control" rows="4" placeholder="Escribe aquí la solución o respuesta que se le enviará directamente al correo del cliente..." required></textarea>
+                                                                </div>
+                                                                <div class="text-end">
+                                                                    <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">
+                                                                        📧 Enviar Correo de Respuesta
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                }
+                                                else if (!string.IsNullOrEmpty(item.RespuestaAdmin))
+                                                {
+                                                    <div class="p-3 bg-secondary bg-opacity-10 rounded border mt-2 shadow-sm">
+                                                        <p class="mb-1 text-muted small">
+                                                            <i class="bi bi-check-circle-fill text-success"></i>
+                                                            <strong>Respuesta enviada al huésped:</strong>
+                                                        </p>
+                                                        <p class="mb-0 text-dark" style="white-space: pre-wrap; font-style: italic; font-size: 0.95rem;">@item.RespuestaAdmin</p>
+                                                    </div>
+                                                }
                                             </div>
                                         </div>
                                     </td>

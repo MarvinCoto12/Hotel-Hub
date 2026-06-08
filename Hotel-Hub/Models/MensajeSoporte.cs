@@ -36,5 +36,7 @@ namespace Hotel_Hub.Models
 
         [ForeignKey("ReservacionId")]
         public Reservacion? Reservacion { get; set; }
+
+        public string? RespuestaAdmin { get; set; }
     }
 }
