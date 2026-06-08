@@ -27,23 +27,47 @@ namespace Hotel_Hub.Pages.Admin
 
         public IList<MensajeSoporte> ListaMensajes { get; set; } = default!;
 
+        [BindProperty(SupportsGet = true)]
+        public string EstadoFiltro { get; set; } = "Pendiente";
+
+        [BindProperty(SupportsGet = true)]
+        public int PaginaActual { get; set; } = 1;
+
+        public int TotalPaginas { get; set; }
+        private const int TamanoPagina = 10;
+
         public async Task OnGetAsync()
         {
-            ListaMensajes = await _contexto.MensajesSoporte
+            var consulta = _contexto.MensajesSoporte
                 .Include(m => m.Reservacion)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(EstadoFiltro) && EstadoFiltro != "Todos")
+            {
+                consulta = consulta.Where(m => m.Estado == EstadoFiltro);
+            }
+
+            int totalTickets = await consulta.CountAsync();
+            TotalPaginas = (int)Math.Ceiling(totalTickets / (double)TamanoPagina);
+
+            if (PaginaActual < 1) PaginaActual = 1;
+            if (PaginaActual > TotalPaginas && TotalPaginas > 0) PaginaActual = TotalPaginas;
+
+            ListaMensajes = await consulta
                 .OrderByDescending(m => m.FechaEnvio)
+                .Skip((PaginaActual - 1) * TamanoPagina)
+                .Take(TamanoPagina)
                 .ToListAsync();
         }
 
-        public async Task<IActionResult> OnPostEnviarRespuestaAsync(int id, string respuestaTexto)
+        public async Task<IActionResult> OnPostEnviarRespuestaAsync(int id, string respuestaTexto, string estadoFiltro, int paginaActual)
         {
-            var ticket = await _contexto.MensajesSoporte
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var ticket = await _contexto.MensajesSoporte.FirstOrDefaultAsync(m => m.Id == id);
 
             if (ticket == null)
             {
                 TempData["Error"] = "No se encontró el mensaje.";
-                return RedirectToPage();
+                return RedirectToPage(new { EstadoFiltro = estadoFiltro, PaginaActual = paginaActual });
             }
 
             var smtp = _config.GetSection("SmtpSettings");
@@ -72,7 +96,7 @@ namespace Hotel_Hub.Pages.Admin
                 };
 
                 using var client = new SmtpClient();
-                await client.ConnectAsync(smtp["Server"]!, int.Parse(smtp["Port"]!)!, SecureSocketOptions.StartTls);
+                await client.ConnectAsync(smtp["Server"]!, int.Parse(smtp["Port"]!), SecureSocketOptions.StartTls);
                 await client.AuthenticateAsync(smtp["SenderEmail"]!, smtp["Password"]!);
                 await client.SendAsync(correo);
                 await client.DisconnectAsync(true);
@@ -88,10 +112,10 @@ namespace Hotel_Hub.Pages.Admin
                 TempData["Error"] = $"Error al enviar el correo: {ex.Message}";
             }
 
-            return RedirectToPage();
+            return RedirectToPage(new { EstadoFiltro = estadoFiltro, PaginaActual = paginaActual });
         }
 
-        public async Task<IActionResult> OnPostCambiarEstadoAsync(int id, string nuevoEstado)
+        public async Task<IActionResult> OnPostCambiarEstadoAsync(int id, string nuevoEstado, string estadoFiltro, int paginaActual)
         {
             var ticket = await _contexto.MensajesSoporte.FindAsync(id);
             if (ticket != null)
@@ -99,7 +123,7 @@ namespace Hotel_Hub.Pages.Admin
                 ticket.Estado = nuevoEstado;
                 await _contexto.SaveChangesAsync();
             }
-            return RedirectToPage();
+            return RedirectToPage(new { EstadoFiltro = estadoFiltro, PaginaActual = paginaActual });
         }
     }
 }

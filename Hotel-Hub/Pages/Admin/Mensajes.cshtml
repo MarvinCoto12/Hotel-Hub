@@ -28,7 +28,26 @@
         <span class="badge bg-light text-dark fw-semibold p-2 fs-6 shadow-sm">Panel Administrativo</span>
     </div>
 
-    <div class="card shadow-sm border-0">
+    <ul class="nav nav-tabs mb-3 border-bottom-0 gap-1">
+        <li class="nav-item">
+            <a class="nav-link @(Model.EstadoFiltro == "Pendiente" ? "active fw-bold border-bottom-0" : "bg-white bg-opacity-75 text-dark shadow-sm")"
+               asp-route-estadoFiltro="Pendiente">⚠️ Pendientes</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model.EstadoFiltro == "Respondido" ? "active fw-bold border-bottom-0" : "bg-white bg-opacity-75 text-dark shadow-sm")"
+               asp-route-estadoFiltro="Respondido">✅ Respondidos</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model.EstadoFiltro == "Archivado" ? "active fw-bold border-bottom-0" : "bg-white bg-opacity-75 text-dark shadow-sm")"
+               asp-route-estadoFiltro="Archivado">📁 Archivados</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(Model.EstadoFiltro == "Todos" ? "active fw-bold border-bottom-0" : "bg-white bg-opacity-75 text-dark shadow-sm")"
+               asp-route-estadoFiltro="Todos">🌐 Todos</a>
+        </li>
+    </ul>
+
+    <div class="card shadow-sm border-top-0" style="border-top-left-radius: 0;">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
@@ -81,17 +100,31 @@
 
                                     <td class="text-center" style="width: 15%;">
                                         <div class="d-inline-flex gap-1 align-items-center">
-                                            <button class="btn btn-sm btn-success"
-                                                    type="button"
-                                                    data-bs-toggle="collapse"
-                                                    data-bs-target="#collapseMensaje-@item.Id"
-                                                    aria-expanded="false"
-                                                    aria-controls="collapseMensaje-@item.Id"
-                                                    title="Ver y responder mensaje">
-                                                👁️‍🗨️ Responder
-                                            </button>
+                                            @if (item.Estado == "Pendiente")
+                                            {
+                                                <button class="btn btn-sm btn-success"
+                                                        type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapseMensaje-@item.Id"
+                                                        aria-expanded="false"
+                                                        title="Ver y responder mensaje">
+                                                    👁️‍🗨️ Responder
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-sm btn-outline-primary"
+                                                        type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#collapseMensaje-@item.Id"
+                                                        aria-expanded="false"
+                                                        title="Ver detalles del mensaje">
+                                                    👁️ Ver
+                                                </button>
+                                            }
 
-                                            <form method="post" asp-page-handler="CambiarEstado" asp-route-id="@item.Id" class="d-inline-flex gap-1 mb-0">
+                                            <form method="post" asp-page-handler="CambiarEstado" asp-route-id="@item.Id"
+                                                  asp-route-estadoFiltro="@Model.EstadoFiltro" asp-route-paginaActual="@Model.PaginaActual" class="d-inline-flex gap-1 mb-0">
                                                 @if (item.Estado != "Archivado")
                                                 {
                                                     <button type="submit" name="nuevoEstado" value="Archivado" class="btn btn-sm btn-outline-secondary" title="Archivar Mensaje">📁</button>
@@ -108,15 +141,12 @@
                                                 <div class="mb-2 d-flex flex-wrap align-items-center gap-2">
                                                     <span class="badge bg-dark">Asunto:</span>
                                                     <strong class="text-dark">@item.Asunto</strong>
-
                                                     @if (item.ReservacionId != null)
                                                     {
-                                                        <span class="badge bg-info text-dark border shadow-sm">
-                                                            🔗 Vinculado a Reserva: FE-2026-@item.ReservacionId
-                                                        </span>
+                                                        <span class="badge bg-info text-dark border shadow-sm">🔗 Vinculado a Reserva: FE-2026-@item.ReservacionId</span>
                                                     }
                                                 </div>
-                                                <div class="p-3 bg-white rounded shadow-sm border text-dark mb-3" style="white-space: pre-wrap; word-break: break-word; font-size: 0.95rem; line-height: 1.6;">@item.Mensaje</div>
+                                                <div class="p-3 bg-white rounded shadow-sm border text-dark mb-3" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6;">@item.Mensaje</div>
 
                                                 @if (item.Estado == "Pendiente")
                                                 {
@@ -125,9 +155,10 @@
                                                             ✍️ Redactar Respuesta al Huésped
                                                         </div>
                                                         <div class="card-body bg-white p-3">
-                                                            <form method="post" asp-page-handler="EnviarRespuesta" asp-route-id="@item.Id">
+                                                            <form method="post" asp-page-handler="EnviarRespuesta" asp-route-id="@item.Id"
+                                                                  asp-route-estadoFiltro="@Model.EstadoFiltro" asp-route-paginaActual="@Model.PaginaActual">
                                                                 <div class="mb-3">
-                                                                    <textarea name="respuestaTexto" class="form-control" rows="4" placeholder="Escribe aquí la solución o respuesta que se le enviará directamente al correo del cliente..." required></textarea>
+                                                                    <textarea name="respuestaTexto" class="form-control" rows="4" placeholder="Escribe aquí la solución que se le enviará directamente al correo..." required></textarea>
                                                                 </div>
                                                                 <div class="text-end">
                                                                     <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">
@@ -141,10 +172,7 @@
                                                 else if (!string.IsNullOrEmpty(item.RespuestaAdmin))
                                                 {
                                                     <div class="p-3 bg-secondary bg-opacity-10 rounded border mt-2 shadow-sm">
-                                                        <p class="mb-1 text-muted small">
-                                                            <i class="bi bi-check-circle-fill text-success"></i>
-                                                            <strong>Respuesta enviada al huésped:</strong>
-                                                        </p>
+                                                        <p class="mb-1 text-muted small"><i class="bi bi-check-circle-fill text-success"></i> <strong>Respuesta enviada:</strong></p>
                                                         <p class="mb-0 text-dark" style="white-space: pre-wrap; font-style: italic; font-size: 0.95rem;">@item.RespuestaAdmin</p>
                                                     </div>
                                                 }
@@ -158,7 +186,8 @@
                         {
                             <tr>
                                 <td colspan="5" class="text-center py-5 text-muted">
-                                    📥 No hay mensajes ni consultas en la bandeja de entrada actualmente.
+                                    <div class="fs-4 mb-2">📭</div>
+                                    No hay mensajes en la categoría <strong>@Model.EstadoFiltro</strong> actualmente.
                                 </td>
                             </tr>
                         }
@@ -167,4 +196,26 @@
             </div>
         </div>
     </div>
+
+    @if (Model.TotalPaginas > 1)
+    {
+        <nav aria-label="Navegación de páginas de soporte" class="mt-4">
+            <ul class="pagination justify-content-center shadow-sm">
+                <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-route-estadoFiltro="@Model.EstadoFiltro" asp-route-paginaActual="@(Model.PaginaActual - 1)">Anterior</a>
+                </li>
+
+                @for (int i = 1; i <= Model.TotalPaginas; i++)
+                {
+                    <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+                        <a class="page-link" asp-route-estadoFiltro="@Model.EstadoFiltro" asp-route-paginaActual="@i">@i</a>
+                    </li>
+                }
+
+                <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+                    <a class="page-link" asp-route-estadoFiltro="@Model.EstadoFiltro" asp-route-paginaActual="@(Model.PaginaActual + 1)">Siguiente</a>
+                </li>
+            </ul>
+        </nav>
+    }
 </div>
