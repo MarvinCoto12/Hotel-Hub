@@ -19,29 +19,60 @@ namespace Hotel_Hub.Pages.Reservaciones
         }
 
         public IList<Reservacion> ListaReservaciones { get; set; } = new List<Reservacion>();
+        public IList<Reservacion> HistorialReservaciones { get; set; } = new List<Reservacion>();
+
 
         [BindProperty(SupportsGet = true)]
         public string? CorreoFiltro { get; set; }
 
+        // Propiedad para capturar si el admin presionó el botón de filtrar (ej. ver solo Check-In)
+        [BindProperty(SupportsGet = true)]
+        public bool FiltrarCheckIn { get; set; } = false;
+
         public async Task OnGetAsync()
         {
+            // Base de la consulta con relación a la habitación
+            var query = _contexto.Reservaciones
+                .Include(r => r.Habitacion)
+                .AsQueryable();
+
+            // Si se filtra por correo del usuario, aplicarlo
             if (!string.IsNullOrEmpty(CorreoFiltro))
             {
-                ListaReservaciones = await _contexto.Reservaciones
-                    .Include(r => r.Habitacion)
-                    .Where(r => r.CorreoUsuario == CorreoFiltro)
+                query = query.Where(r => r.CorreoUsuario == CorreoFiltro);
+            }
+
+            // Separación de datos por estado:
+            // - Lista principal: Activa + CheckIn (o sólo CheckIn si FiltrarCheckIn == true)
+            // - Historial: CheckOut
+            if (FiltrarCheckIn)
+            {
+                ListaReservaciones = await query
+                    .Where(r => r.Estado == "CheckIn")
+                    .OrderByDescending(r => r.FechaEntrada)
+                    .ToListAsync();
+
+                HistorialReservaciones = await query
+                    .Where(r => r.Estado == "CheckOut")
                     .OrderByDescending(r => r.FechaEntrada)
                     .ToListAsync();
             }
             else
             {
-                ListaReservaciones = new List<Reservacion>();
+                ListaReservaciones = await query
+                    .Where(r => r.Estado == "Activa" || r.Estado == "CheckIn")
+                    .OrderByDescending(r => r.FechaEntrada)
+                    .ToListAsync();
+
+                HistorialReservaciones = await query
+                    .Where(r => r.Estado == "CheckOut")
+                    .OrderByDescending(r => r.FechaEntrada)
+                    .ToListAsync();
             }
         }
 
         public async Task<IActionResult> OnGetDescargarFacturaAsync(int id)
         {
-
             var reserva = await _contexto.Reservaciones
                 .Include(r => r.Habitacion)
                 .FirstOrDefaultAsync(r => r.Id == id);
@@ -97,6 +128,32 @@ namespace Hotel_Hub.Pages.Reservaciones
 
             string nombreArchivo = $"Factura_HotelHub_{reserva.NombreHuesped.Replace(" ", "_")}.pdf";
             return File(pdfBytes, "application/pdf", nombreArchivo);
+        }
+
+        // Acción POST: marcar Check-In
+        public async Task<IActionResult> OnPostMarcarCheckInAsync(int id)
+        {
+            var reserva = await _contexto.Reservaciones.FindAsync(id);
+            if (reserva == null) return NotFound();
+
+            reserva.Estado = "CheckIn";
+            _contexto.Reservaciones.Update(reserva);
+            await _contexto.SaveChangesAsync();
+
+            return RedirectToPage();
+        }
+
+        // Acción POST: marcar Check-Out
+        public async Task<IActionResult> OnPostMarcarCheckOutAsync(int id)
+        {
+            var reserva = await _contexto.Reservaciones.FindAsync(id);
+            if (reserva == null) return NotFound();
+
+            reserva.Estado = "CheckOut";
+            _contexto.Reservaciones.Update(reserva);
+            await _contexto.SaveChangesAsync();
+
+            return RedirectToPage();
         }
     }
 }
