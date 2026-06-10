@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Hotel_Hub.Data;
 using Hotel_Hub.Models;
 
@@ -9,7 +10,13 @@ namespace Hotel_Hub.Pages.Admin
     public class IndexModel : PageModel
     {
         private readonly ContextoBaseDatos _contexto;
-        public IndexModel(ContextoBaseDatos contexto) => _contexto = contexto;
+        private readonly IConfiguration _configuracion;
+
+        public IndexModel(ContextoBaseDatos contexto, IConfiguration configuracion)
+        {
+            _contexto = contexto;
+            _configuracion = configuracion;
+        }
 
         public IList<Reservacion> TodasLasReservaciones { get; set; } = new List<Reservacion>();
 
@@ -33,6 +40,7 @@ namespace Hotel_Hub.Pages.Admin
                 EsAdmin = true;
 
                 var query = _contexto.Reservaciones
+                    .AsNoTracking()
                     .Include(r => r.Habitacion)
                     .AsQueryable();
 
@@ -67,7 +75,9 @@ namespace Hotel_Hub.Pages.Admin
 
         public IActionResult OnPostLogin()
         {
-            if (PasswordIngresado == "admin123")
+            string passwordReal = _configuracion["AdminSettings:Password"] ?? "admin123";
+
+            if (PasswordIngresado == passwordReal)
             {
                 HttpContext.Session.SetString("IsAdmin", "true");
                 return RedirectToPage();

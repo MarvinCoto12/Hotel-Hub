@@ -28,6 +28,7 @@ namespace Hotel_Hub.Pages.Reservaciones
             if (!string.IsNullOrEmpty(CorreoFiltro))
             {
                 ListaReservaciones = await _contexto.Reservaciones
+                    .AsNoTracking()
                     .Include(r => r.Habitacion)
                     .Where(r => r.CorreoUsuario == CorreoFiltro)
                     .OrderByDescending(r => r.FechaEntrada)
@@ -41,8 +42,10 @@ namespace Hotel_Hub.Pages.Reservaciones
 
         public async Task<IActionResult> OnGetDescargarFacturaAsync(int id)
         {
+            QuestPDF.Settings.License = LicenseType.Community;
 
             var reserva = await _contexto.Reservaciones
+                .AsNoTracking()
                 .Include(r => r.Habitacion)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
