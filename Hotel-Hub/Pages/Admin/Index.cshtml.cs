@@ -16,15 +16,51 @@ namespace Hotel_Hub.Pages.Admin
         [BindProperty]
         public string PasswordIngresado { get; set; } = string.Empty;
         public bool EsAdmin { get; set; } = false;
+        public int TotalReservasActivas { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string Vista { get; set; } = "Todas";
+
+        [BindProperty(SupportsGet = true)]
+        public int PaginaActual { get; set; } = 1;
+        public int TotalPaginas { get; set; }
+        private const int TamanoPagina = 10;
 
         public async Task OnGetAsync()
         {
             if (HttpContext.Session.GetString("IsAdmin") == "true")
             {
                 EsAdmin = true;
-                TodasLasReservaciones = await _contexto.Reservaciones
+
+                var query = _contexto.Reservaciones
                     .Include(r => r.Habitacion)
+                    .AsQueryable();
+
+                TotalReservasActivas = await _contexto.Reservaciones.CountAsync(r => r.Estado == "Activa" || r.Estado == "CheckIn");
+
+                if (Vista == "CheckIn")
+                {
+                    query = query.Where(r => r.Estado == "CheckIn");
+                }
+                else if (Vista == "CheckOut")
+                {
+                    query = query.Where(r => r.Estado == "CheckOut");
+                }
+                else
+                {
+                    query = query.Where(r => r.Estado == "Activa" || r.Estado == "CheckIn");
+                }
+
+                int totalRegistros = await query.CountAsync();
+                TotalPaginas = (int)Math.Ceiling(totalRegistros / (double)TamanoPagina);
+
+                if (PaginaActual < 1) PaginaActual = 1;
+                if (PaginaActual > TotalPaginas && TotalPaginas > 0) PaginaActual = TotalPaginas;
+
+                TodasLasReservaciones = await query
                     .OrderByDescending(r => r.FechaEntrada)
+                    .Skip((PaginaActual - 1) * TamanoPagina)
+                    .Take(TamanoPagina)
                     .ToListAsync();
             }
         }
@@ -40,7 +76,7 @@ namespace Hotel_Hub.Pages.Admin
             return Page();
         }
 
-        public async Task<IActionResult> OnPostEliminarAsync(int id)
+        public async Task<IActionResult> OnPostEliminarAsync(int id, string vista, int paginaActual)
         {
             var res = await _contexto.Reservaciones.FindAsync(id);
             if (res != null)
@@ -48,7 +84,29 @@ namespace Hotel_Hub.Pages.Admin
                 _contexto.Reservaciones.Remove(res);
                 await _contexto.SaveChangesAsync();
             }
-            return RedirectToPage();
+            return RedirectToPage(new { Vista = vista, PaginaActual = paginaActual });
+        }
+
+        public async Task<IActionResult> OnPostMarcarCheckInAsync(int id, string vista, int paginaActual)
+        {
+            var reserva = await _contexto.Reservaciones.FindAsync(id);
+            if (reserva != null)
+            {
+                reserva.Estado = "CheckIn";
+                await _contexto.SaveChangesAsync();
+            }
+            return RedirectToPage(new { Vista = vista, PaginaActual = paginaActual });
+        }
+
+        public async Task<IActionResult> OnPostMarcarCheckOutAsync(int id, string vista, int paginaActual)
+        {
+            var reserva = await _contexto.Reservaciones.FindAsync(id);
+            if (reserva != null)
+            {
+                reserva.Estado = "CheckOut";
+                await _contexto.SaveChangesAsync();
+            }
+            return RedirectToPage(new { Vista = vista, PaginaActual = paginaActual });
         }
 
         public IActionResult OnPostLogout()

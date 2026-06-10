@@ -162,3 +162,21 @@ html, body {
 main {
     margin-bottom: 2rem;
 }
+
+/* --- ESTILOS DEL PANEL DE ADMINISTRACIÓN --- */
+.admin-wrapper {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+}
+
+.card-login {
+    border: none;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.95);
+}
+
+.table-custom {
+    border-radius: 10px;
+    overflow: hidden;
+}
