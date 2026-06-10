@@ -1,7 +1,7 @@
 ﻿@page
 @model Hotel_Hub.Pages.Reservaciones.IndexModel
 @{
-    ViewData["Title"] = "Mis Reservaciones";
+    ViewData["Title"] = "Reservas Activas";
 }
 
 <div class="container mt-4">
@@ -12,11 +12,72 @@
             color: #2c3e50;
             display: inline-block;
             line-height: 1.2;">
-            Mis Reservaciones
+            Reservas Activas
         </h2>
-        <a asp-page="Create" class="btn btn-primary shadow-sm">
-            + Nueva Reservación
-        </a>
+
+        <div class="d-flex align-items-center gap-2">
+            <!-- Botón para mostrar/ocultar historial de reservas cerradas -->
+            <button class="btn btn-outline-secondary shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#historialCollapse" aria-expanded="false" aria-controls="historialCollapse">
+                Historial de Reservas Cerradas
+            </button>
+
+            <a asp-page="Create" class="btn btn-primary shadow-sm">
+                + Nueva Reservación
+            </a>
+        </div>
+    </div>
+
+    <!-- Sección colapsable para historial de reservas cerradas -->
+    <div class="collapse mb-4" id="historialCollapse">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Historial de Reservas Cerradas</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Huésped</th>
+                                <th>Estadía</th>
+                                <th>Habitación</th>
+                                <th>Tipo</th>
+                                <th>Costo Total</th>
+                                <th class="text-center">Factura</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.HistorialReservaciones.Any())
+                            {
+                                foreach (var h in Model.HistorialReservaciones)
+                                {
+                                    <tr>
+                                        <td class="align-middle">
+                                            @h.NombreHuesped <br />
+                                            <small class="text-muted">@h.CorreoUsuario</small>
+                                        </td>
+                                        <td class="align-middle">
+                                            <small class="text-muted d-block">Entrada: @h.FechaEntrada?.ToShortDateString()</small>
+                                            <small class="text-muted d-block">Salida: @h.FechaSalida?.ToShortDateString()</small>
+                                        </td>
+                                        <td class="align-middle fw-bold">#@(h.Habitacion?.Numero ?? "N/A")</td>
+                                        <td class="align-middle"><span class="badge bg-info text-dark">@(h.Habitacion?.Tipo ?? "N/A")</span></td>
+                                        <td class="align-middle text-success fw-bold">$@h.CostoTotal.ToString("0.00")</td>
+                                        <td class="align-middle text-center">
+                                            <a asp-page-handler="DescargarFactura" asp-route-id="@h.Id" class="btn btn-sm btn-danger">📥 Descargar PDF</a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-3">No hay reservas cerradas para mostrar.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="card shadow-sm border-0 mb-4 bg-light">
@@ -33,6 +94,18 @@
         </div>
     </div>
 
+    <!-- Botón de filtro rápido para ver solo huéspedes con estado CheckIn -->
+    <div class="d-flex justify-content-end mb-3">
+        @if (Model.FiltrarCheckIn)
+        {
+            <a asp-page="./Index" asp-route-CorreoFiltro="@Model.CorreoFiltro" class="btn btn-sm btn-outline-primary">Mostrar todos</a>
+        }
+        else
+        {
+            <a asp-page="./Index" asp-route-FiltrarCheckIn="true" asp-route-CorreoFiltro="@Model.CorreoFiltro" class="btn btn-sm btn-success">Ver huéspedes en hotel (Check-In)</a>
+        }
+    </div>
+
     <div class="card shadow-sm border-0">
         <div class="card-body p-0">
             <table class="table table-hover mb-0">
@@ -43,7 +116,7 @@
                         <th>Habitación</th>
                         <th>Tipo</th>
                         <th>Costo Total</th>
-                        <th class="text-center">Factura</th>
+                        <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -70,17 +143,26 @@
                                     $@item.CostoTotal.ToString("0.00")
                                 </td>
                                 <td class="align-middle text-center">
-                                    @if (DateTime.UtcNow.Date >= item.FechaSalida?.Date)
+                                    @if (item.Estado == "Activa")
                                     {
-                                        <a asp-page-handler="DescargarFactura" asp-route-id="@item.Id" class="btn btn-sm btn-danger shadow-sm">
-                                            📥 Descargar PDF
-                                        </a>
+                                        <form method="post" asp-page-handler="MarcarCheckIn" asp-route-id="@item.Id" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-success shadow-sm">🔑 Check-In</button>
+                                        </form>
+                                    }
+                                    else if (item.Estado == "CheckIn")
+                                    {
+                                        <form method="post" asp-page-handler="MarcarCheckOut" asp-route-id="@item.Id" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-warning shadow-sm">🚪 Check-Out</button>
+                                        </form>
+                                    }
+                                    else if (item.Estado == "CheckOut")
+                                    {
+                                        <!-- Mostrar PDF solo si el estado es exactamente CheckOut -->
+                                        <a asp-page-handler="DescargarFactura" asp-route-id="@item.Id" class="btn btn-sm btn-danger shadow-sm">📥 Descargar PDF</a>
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary text-white small" title="La factura se emite al finalizar la estadía">
-                                            🔒 Pendiente de Check-out
-                                        </span>
+                                        <span class="badge bg-secondary">@item.Estado</span>
                                     }
                                 </td>
                             </tr>
