@@ -39,6 +39,7 @@ namespace Hotel_Hub.Pages.Admin
         public async Task OnGetAsync()
         {
             var consulta = _contexto.MensajesSoporte
+                .AsNoTracking()
                 .Include(m => m.Reservacion)
                 .AsQueryable();
 
