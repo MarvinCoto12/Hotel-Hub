@@ -4,12 +4,6 @@
     ViewData["Title"] = "Panel de Control";
 }
 
-<style>
-    .admin-wrapper { min-height: 70vh; display: flex; align-items: center; }
-    .card-login { border: none; border-radius: 15px; background: rgba(255,255,255,0.95); }
-    .table-custom { border-radius: 10px; overflow: hidden; }
-</style>
-
 <div class="container mt-4">
     @if (!Model.EsAdmin)
     {
@@ -27,9 +21,7 @@
                     <form method="post" asp-page-handler="Login">
                         <div class="mb-3">
                             <label class="form-label small fw-bold">CONTRASEÑA</label>
-                            <input type="password" asp-for="PasswordIngresado"
-                                   class="form-control form-control-lg border-2"
-                                   style="border-radius: 10px;">
+                            <input type="password" asp-for="PasswordIngresado" class="form-control form-control-lg border-2" style="border-radius: 10px;">
                         </div>
                         <button class="btn btn-dark w-100 btn-lg shadow-sm" style="border-radius: 10px;">
                             Entrar al Sistema
@@ -42,12 +34,54 @@
     else
     {
         <div class="card border-0 shadow-sm p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
                     <h2 class="fw-bold text-dark mb-0">Gestión Global de Reservas</h2>
-                    <span class="badge bg-success">@Model.TodasLasReservaciones.Count Reservas Activas</span>
+
+                    <span class="badge bg-success fs-6 shadow-sm me-2">
+                        @if (Model.Vista == "CheckOut")
+                        {
+                            @:📋 Historial de Check-Out
+                        }
+                        else if (Model.Vista == "CheckIn")
+                        {
+                            @:🔍 Clientes en el Hotel
+                        }
+                        else
+                        {
+                            @:@Model.TotalReservasActivas Reservas Activas
+                        }
+                    </span>
+
+                    @if (Model.Vista == "CheckIn")
+                    {
+                        <a asp-page="./Index" asp-route-Vista="Todas" class="btn btn-secondary btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                            📋 Ver Todas las Reservas
+                        </a>
+                        <a asp-page="./Index" asp-route-Vista="CheckOut" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                            📁 Ver Historial (Check-Out)
+                        </a>
+                    }
+                    else if (Model.Vista == "CheckOut")
+                    {
+                        <a asp-page="./Index" asp-route-Vista="CheckIn" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                            🔍 Filtrar solo Check-In
+                        </a>
+                        <a asp-page="./Index" asp-route-Vista="Todas" class="btn btn-secondary btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                            📋 Ver Todas las Reservas
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-page="./Index" asp-route-Vista="CheckIn" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                            🔍 Filtrar solo Check-In
+                        </a>
+                        <a asp-page="./Index" asp-route-Vista="CheckOut" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                            📁 Ver Historial (Check-Out)
+                        </a>
+                    }
                 </div>
-                <form method="post" asp-page-handler="Logout">
+                <form method="post" asp-page-handler="Logout" class="m-0">
                     <button class="btn btn-outline-danger btn-sm rounded-pill px-3">
                         <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
                     </button>
@@ -65,7 +99,8 @@
                                 <th>Habitación</th>
                                 <th>Fechas</th>
                                 <th>Total</th>
-                                <th class="text-center" style="width: 180px;">Acción</th>
+                                <th class="text-center">Estado</th>
+                                <th class="text-center" style="width: 250px;">Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -88,17 +123,46 @@
                                     </td>
                                     <td class="fw-bold text-success">$@item.CostoTotal</td>
                                     <td class="text-center">
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm border-0">
-                                                <i class="bi bi-pencil-square"></i> Editar
-                                            </a>
-                                        
-                                            <form method="post" asp-page-handler="Eliminar" asp-route-id="@item.Id"
-                                                  onsubmit="return confirm('¿Seguro que desea borrar esta reserva?')">
-                                                <button class="btn btn-outline-danger btn-sm border-0">
-                                                    <i class="bi bi-trash3"></i> Borrar
-                                                </button>
-                                            </form>
+                                        <span class="badge @(item.Estado == "CheckIn" ? "bg-warning text-dark" : (item.Estado == "CheckOut" ? "bg-dark" : "bg-primary"))">
+                                            @(item.Estado == "CheckIn" ? "Check-In" : (item.Estado == "CheckOut" ? "Finalizada" : "Pendiente"))
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-1">
+
+                                            @if (Model.Vista == "Todas")
+                                            {
+                                                @if (item.Estado == "Activa")
+                                                {
+                                                    <form method="post" asp-page-handler="MarcarCheckIn" asp-route-id="@item.Id" asp-route-vista="@Model.Vista" asp-route-paginaActual="@Model.PaginaActual" class="m-0">
+                                                        <button type="submit" class="btn btn-success btn-sm border-0 fw-bold shadow-sm">
+                                                            🔑 Check-In
+                                                        </button>
+                                                    </form>
+                                                }
+
+                                                <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-outline-primary btn-sm border-0">
+                                                    <i class="bi bi-pencil-square"></i> Editar
+                                                </a>
+                                                <form method="post" asp-page-handler="Eliminar" asp-route-id="@item.Id" asp-route-vista="@Model.Vista" asp-route-paginaActual="@Model.PaginaActual"
+                                                      onsubmit="return confirm('¿Seguro que desea borrar esta reserva?')">
+                                                    <button class="btn btn-outline-danger btn-sm border-0">
+                                                        <i class="bi bi-trash3"></i> Borrar
+                                                    </button>
+                                                </form>
+                                            }
+                                            else if (Model.Vista == "CheckIn")
+                                            {
+                                                <form method="post" asp-page-handler="MarcarCheckOut" asp-route-id="@item.Id" asp-route-vista="@Model.Vista" asp-route-paginaActual="@Model.PaginaActual" class="m-0">
+                                                    <button type="submit" class="btn btn-dark btn-sm border-0 fw-bold shadow-sm">
+                                                        🚪 Check-Out
+                                                    </button>
+                                                </form>
+                                            }
+                                            else if (Model.Vista == "CheckOut")
+                                            {
+                                                <span class="text-muted small fw-bold"><i class="bi bi-check-circle-fill text-dark"></i> Concluido</span>
+                                            }
                                         </div>
                                     </td>
                                 </tr>
@@ -106,11 +170,31 @@
                         </tbody>
                     </table>
                 </div>
+
+                @if (Model.TotalPaginas > 1)
+                {
+                    <nav aria-label="Navegación de páginas administrativas" class="mt-4">
+                        <ul class="pagination justify-content-center shadow-sm mb-0">
+                            <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
+                                <a class="page-link text-dark fw-bold" asp-route-Vista="@Model.Vista" asp-route-PaginaActual="@(Model.PaginaActual - 1)">Anterior</a>
+                            </li>
+                            @for (int i = 1; i <= Model.TotalPaginas; i++)
+                            {
+                                <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+                                    <a class="page-link @(i == Model.PaginaActual ? "bg-dark border-dark text-white" : "text-dark")" asp-route-Vista="@Model.Vista" asp-route-PaginaActual="@i">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+                                <a class="page-link text-dark fw-bold" asp-route-Vista="@Model.Vista" asp-route-PaginaActual="@(Model.PaginaActual + 1)">Siguiente</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
             }
             else
             {
-                <div class="alert alert-light border shadow-sm text-center py-4" style="border-radius: 10px;">
-                    <h5 class="text-muted mb-0">No hay reservaciones en este momento</h5>
+                <div class="alert alert-light border shadow-sm text-center py-5 mt-2" style="border-radius: 10px;">
+                    <h5 class="text-muted mb-0">No se encontraron reservaciones para mostrar en esta categoría</h5>
                 </div>
             }
         </div>

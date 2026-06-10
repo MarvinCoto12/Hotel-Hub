@@ -70,7 +70,7 @@
                                     $@item.CostoTotal.ToString("0.00")
                                 </td>
                                 <td class="align-middle text-center">
-                                    @if (DateTime.UtcNow.Date >= item.FechaSalida?.Date)
+                                    @if (item.Estado == "CheckOut")
                                     {
                                         <a asp-page-handler="DescargarFactura" asp-route-id="@item.Id" class="btn btn-sm btn-danger shadow-sm">
                                             📥 Descargar PDF

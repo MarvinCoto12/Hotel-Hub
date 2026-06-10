@@ -34,5 +34,7 @@ namespace Hotel_Hub.Models
         public Habitacion? Habitacion { get; set; }
 
         public decimal CostoTotal { get; set; }
+
+        public string Estado { get; set; } = "Activa";
     }
 }

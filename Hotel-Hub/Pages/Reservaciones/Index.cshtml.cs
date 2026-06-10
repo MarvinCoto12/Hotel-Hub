@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc.RazorPages;
+ï»¿using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Hotel_Hub.Data;
 using Hotel_Hub.Models;
@@ -28,6 +28,7 @@ namespace Hotel_Hub.Pages.Reservaciones
             if (!string.IsNullOrEmpty(CorreoFiltro))
             {
                 ListaReservaciones = await _contexto.Reservaciones
+                    .AsNoTracking()
                     .Include(r => r.Habitacion)
                     .Where(r => r.CorreoUsuario == CorreoFiltro)
                     .OrderByDescending(r => r.FechaEntrada)
@@ -41,12 +42,14 @@ namespace Hotel_Hub.Pages.Reservaciones
 
         public async Task<IActionResult> OnGetDescargarFacturaAsync(int id)
         {
+            QuestPDF.Settings.License = LicenseType.Community;
 
             var reserva = await _contexto.Reservaciones
+                .AsNoTracking()
                 .Include(r => r.Habitacion)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
-            if (reserva == null)
+            if (reserva == null || reserva.Estado != "CheckOut")
             {
                 return NotFound();
             }
@@ -61,24 +64,24 @@ namespace Hotel_Hub.Pages.Reservaciones
                     page.DefaultTextStyle(x => x.FontSize(11));
 
                     page.Header()
-                        .Text("HOTEL HUB - FACTURA ELECTRÓNICA")
+                        .Text("HOTEL HUB - FACTURA ELECTRÃ“NICA")
                         .SemiBold().FontSize(18).FontColor(Colors.Blue.Darken3);
 
                     page.Content().PaddingVertical(1, Unit.Centimetre).Column(column =>
                     {
                         column.Spacing(10);
 
-                        column.Item().Text($"Factura de Estadía N°: FE-2026-{reserva.Id}").Bold();
-                        column.Item().Text($"Cliente / Huésped: {reserva.NombreHuesped}");
+                        column.Item().Text($"Factura de EstadÃ­a NÂ°: FE-2026-{reserva.Id}").Bold();
+                        column.Item().Text($"Cliente / HuÃ©sped: {reserva.NombreHuesped}");
                         column.Item().Text($"Correo Registrado: {reserva.CorreoUsuario}");
-                        column.Item().Text($"Período: Desde {reserva.FechaEntrada?.ToString("dd/MM/yyyy")} hasta {reserva.FechaSalida?.ToString("dd/MM/yyyy")}");
+                        column.Item().Text($"PerÃ­odo: Desde {reserva.FechaEntrada?.ToString("dd/MM/yyyy")} hasta {reserva.FechaSalida?.ToString("dd/MM/yyyy")}");
 
                         column.Item().LineHorizontal(1).LineColor(Colors.Grey.Lighten1);
 
                         if (reserva.Habitacion != null)
                         {
-                            column.Item().Text($"Habitación Asignada: N° {reserva.Habitacion.Numero}");
-                            column.Item().Text($"Tipo de Habitación: {reserva.Habitacion.Tipo}");
+                            column.Item().Text($"HabitaciÃ³n Asignada: NÂ° {reserva.Habitacion.Numero}");
+                            column.Item().Text($"Tipo de HabitaciÃ³n: {reserva.Habitacion.Tipo}");
                             column.Item().Text($"Precio Unitario por Noche: ${reserva.Habitacion.PrecioPorNoche}");
                         }
 
@@ -89,7 +92,7 @@ namespace Hotel_Hub.Pages.Reservaciones
                     page.Footer()
                         .AlignCenter()
                         .Text(x => {
-                            x.Span("Gracias por su preferencia en Hotel Hub. Visítenos pronto. ").Italic();
+                            x.Span("Gracias por su preferencia en Hotel Hub. VisÃ­tenos pronto. ").Italic();
                             x.CurrentPageNumber();
                         });
                 });
