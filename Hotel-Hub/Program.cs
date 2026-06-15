@@ -23,7 +23,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var contexto = scope.ServiceProvider.GetRequiredService<ContextoBaseDatos>();
-    contexto.Database.EnsureCreated();
+    //contexto.Database.EnsureCreated();
 }
 
 if (!app.Environment.IsDevelopment())
