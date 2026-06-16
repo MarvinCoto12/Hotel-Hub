@@ -62,6 +62,16 @@ namespace Hotel_Hub.Pages.Admin
                 CargarListaHabitaciones();
                 return Page();
             }
+            
+            if (Reservacion.FechaEntrada.HasValue)
+            {
+                Reservacion.FechaEntrada = DateTime.SpecifyKind(Reservacion.FechaEntrada.Value, DateTimeKind.Utc);
+            }
+
+            if (Reservacion.FechaSalida.HasValue)
+            {
+                Reservacion.FechaSalida = DateTime.SpecifyKind(Reservacion.FechaSalida.Value, DateTimeKind.Utc);
+            }
 
             bool ocupada = await _contexto.Reservaciones.AnyAsync(r =>
                 r.Id != Reservacion.Id &&
